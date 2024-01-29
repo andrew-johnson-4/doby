@@ -1,6 +1,6 @@
 [package]
 name = "doby"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["Andrew <andrew@subarctic.org>"]
 license = "MIT"
 description = "Doby Package/Build Manager"
