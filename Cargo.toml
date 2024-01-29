@@ -1,0 +1,10 @@
+[package]
+name = "doby"
+version = "0.0.0"
+authors = ["Andrew <andrew@subarctic.org>"]
+license = "MIT"
+description = "Doby Package/Build Manager"
+edition = "2018"
+readme = "README.md"
+repository = "https://github.com/andrew-johnson-4/doby"
+keywords = ["programming-language","build-tools","package-manager"]
