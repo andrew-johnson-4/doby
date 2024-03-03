@@ -58,10 +58,13 @@ fn bench_mark(cfg: BenchmarkConfig) -> (String,Vec<(u128,u128)>) {
       let before = get_epoch_ms();
       let output = prc.spawn().expect("Failed to execute command")
                       .wait().expect("Failed to wait for command");
-      ms.push((
-         u128::from_str_radix(&arg, 10).expect("parse benchmark arg"),
-         get_epoch_ms() - before
-      ));
+      let after = get_epoch_ms();
+      if cmd_i == cfg.cmdchain.len() {
+         ms.push((
+            u128::from_str_radix(&arg, 10).expect("parse benchmark arg"),
+            after - before
+         ));
+      }
       if !output.success() {
          println!("benchmark failed: {}", cmd);
       }
@@ -171,11 +174,11 @@ fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
         .draw().expect("Chart.draw");
 
     for (idx,(cmd,cmdts)) in results.iter().enumerate() {
-       let cmdts = cmdts.iter().map(|(x,y)| (*x as u32, *y as u32) ).collect::<Vec<(u32,u32)>>();
+       let points = cmdts.iter().map(|(x,y)| (*x as u32, *y as u32) ).collect::<Vec<(u32,u32)>>();
        let color = Palette99::pick(idx).mix(0.9);
        chart
             .draw_series(LineSeries::new(
-                cmdts,
+                points,
                 color.stroke_width(3),
             )).expect("Char.draw_series")
             .label(cmd)
