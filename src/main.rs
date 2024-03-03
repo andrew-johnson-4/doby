@@ -134,11 +134,6 @@ fn main() {
 }
 
 fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
-    for (cmd,cmdts) in results {
-       for (argt,cmdt) in cmdts {
-          println!("Timed Results: {} {}={}", cmd, argt, cmdt);
-       }
-    }
     let file_name = format!("{}.svg", base_name);
     let root = SVGBackend::new(&file_name, (1024, 768)).into_drawing_area();
     root.fill(&WHITE).expect("Root Fill");
@@ -151,9 +146,8 @@ fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
         .set_label_area_size(LabelAreaPosition::Bottom, (4).percent())
         .margin((1).percent())
         .build_cartesian_2d(
-            (20u32..5000_0000u32)
-                .log_scale()
-                .with_key_points(vec![50, 100, 1000, 10000, 100000, 1000000, 10000000]),
+            (0u32..50u32)
+                .with_key_points(vec![5, 10, 15, 20, 25, 30, 35, 40, 45, 50]),
             (0u32..50_0000u32)
                 .log_scale()
                 .with_key_points(vec![10, 50, 100, 1000, 10000, 100000, 200000]),
@@ -165,17 +159,15 @@ fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
         .y_desc("Time (ms)")
         .draw().expect("Chart.draw");
 
-    for (idx, &series) in ["CHN", "USA", "RUS", "JPN", "DEU", "IND", "OWID_WRL"]
-        .iter()
-        .enumerate()
-    {
-        let color = Palette99::pick(idx).mix(0.9);
-        chart
+    for (idx,(cmd,cmdts)) in results.iter().enumerate() {
+       let cmdts = cmdts.iter().map(|(x,y)| (*x as u32, *y as u32) ).collect::<Vec<(u32,u32)>>();
+       let color = Palette99::pick(idx).mix(0.9);
+       chart
             .draw_series(LineSeries::new(
-                vec![(1,2),(3,4)],
+                cmdts,
                 color.stroke_width(3),
             )).expect("Char.draw_series")
-            .label(series)
+            .label(cmd)
             .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], color.filled()));
     }
 
