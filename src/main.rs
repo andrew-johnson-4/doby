@@ -2,9 +2,29 @@
 extern crate glob;
 extern crate plotters;
 use plotters::prelude::*;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::BufReader;
+
+#[derive(Clone,Copy)]
+struct BenchmarkConfig {
+}
+
+fn bench_mark(config: BenchmarkConfig) {
+}
 
 fn bench_file(tgt: &str) {
-   println!("bench {}", tgt);
+   let file = File::open(tgt).expect("Open file");
+   let reader = BufReader::new(file);
+   let mut config = None;
+   for line in reader.lines() {
+      let line = line.expect("Line in File").trim().to_string();
+      if config.is_some() {
+         bench_mark(config.unwrap())
+      } else if line.len() > 0 {
+         println!("bench {} '{}'", tgt, line);
+      }
+   }
    plot(tgt.strip_suffix(".bench").expect("strip_suffix .bench"));
 }
 
