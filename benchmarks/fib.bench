@@ -1,4 +1,5 @@
 
+label: Lambda Mountain
 arg: 0
 arg: 5
 arg: 10
@@ -11,6 +12,7 @@ run: as -o $basename.o $basename.s
 run: ld -o $basename.lm.exe $basename.o
 run: ./$basename.lm.exe
 
+label: OCaml
 arg: 0
 arg: 5
 arg: 10

@@ -10,6 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Clone)]
 struct BenchmarkConfig {
+  label: String,
   basename: String,
   argchain: Vec<String>,
   cmdchain: Vec<String>,
@@ -17,6 +18,7 @@ struct BenchmarkConfig {
 impl BenchmarkConfig {
    pub fn new(tgt: String) -> BenchmarkConfig {
       BenchmarkConfig {
+         label: "".to_string(),
          basename: tgt,
          argchain: Vec::new(),
          cmdchain: Vec::new(),
@@ -65,6 +67,9 @@ fn bench_mark(cfg: BenchmarkConfig) -> (String,Vec<(u128,u128)>) {
       }
       name = cmd.to_string();
    }}
+   if cfg.label.len()>0 {
+      name = cfg.label.clone();
+   }
    (name, ms)
 }
 
@@ -84,6 +89,12 @@ fn bench_file(tgt: &str) {
             config = Some(BenchmarkConfig::new(basename.to_string()));
          }
          if let Some(bcfg) = config.clone() {
+            if line.starts_with("label: ") {
+               config = Some(BenchmarkConfig {
+                  label: line.strip_prefix("label: ").unwrap().to_string(),
+                  ..bcfg.clone()
+               })
+            }
             if line.starts_with("run: ") {
                config = Some(BenchmarkConfig {
                   cmdchain: push_vec(bcfg.cmdchain.clone(), line.strip_prefix("run: ").unwrap().to_string()),
