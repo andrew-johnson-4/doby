@@ -6,24 +6,59 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-#[derive(Clone,Copy)]
+#[derive(Clone)]
 struct BenchmarkConfig {
+  basename: String,
+  cmdchain: Vec<String>,
+}
+impl BenchmarkConfig {
+   pub fn new(tgt: String) -> BenchmarkConfig {
+      BenchmarkConfig {
+         basename: tgt,
+         cmdchain: Vec::new()
+      }
+   }
 }
 
-fn bench_mark(config: BenchmarkConfig) {
+fn push_vec<S>(vec: Vec<S>, val: S) -> Vec<S> where S: Clone {
+   let mut vec = vec.clone();
+   vec.push(val);
+   vec
+}
+
+fn bench_mark(cfg: BenchmarkConfig) {
+   for cmd in cfg.cmdchain {
+      let cmd = cmd.replace("$basename", &cfg.basename);
+      println!("TODO run benchmark {}", cmd);
+   }
 }
 
 fn bench_file(tgt: &str) {
    let file = File::open(tgt).expect("Open file");
+   let basename = tgt.strip_suffix(".bench").expect("strip suffix .bench");
    let reader = BufReader::new(file);
    let mut config = None;
    for line in reader.lines() {
       let line = line.expect("Line in File").trim().to_string();
-      if config.is_some() {
-         bench_mark(config.unwrap())
+      if line.len()==0 && config.is_some() {
+         bench_mark(config.clone().unwrap());
+         config = None;
       } else if line.len() > 0 {
-         println!("bench {} '{}'", tgt, line);
+         if config.is_none() {
+            config = Some(BenchmarkConfig::new(basename.to_string()));
+         }
+         if let Some(bcfg) = config.clone() {
+            if line.starts_with("run: ") {
+               config = Some(BenchmarkConfig {
+                  cmdchain: push_vec(bcfg.cmdchain, line.strip_prefix("run: ").unwrap().to_string()),
+                  ..bcfg
+               })
+            }
+         }
       }
+   }
+   if config.is_some() {
+      bench_mark(config.clone().unwrap())
    }
    plot(tgt.strip_suffix(".bench").expect("strip_suffix .bench"));
 }

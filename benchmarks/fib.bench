@@ -1,2 +1,5 @@
 
-config x y
+run: lm -o $basename.s $basename.lm
+run: as -o $basename.o $basename.s
+run: ld -o $basename   $basename.o
+run: ./$basename
