@@ -2,4 +2,4 @@
 bench:
 	cargo install --path .
 	doby bench benchmarks
-	mv benchmarks/fib.svg /mnt/c/Users/andre/OneDrive/Desktop/
+	mv benchmarks/fibonacci.svg /mnt/c/Users/andre/OneDrive/Desktop/
