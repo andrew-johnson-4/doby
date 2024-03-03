@@ -11,3 +11,4 @@ keywords = ["programming-language","build-tools","package-manager"]
 
 [dependencies]
 glob = { version = "0.3" }
+plotters = { version = "0.3" }
