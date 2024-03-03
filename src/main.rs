@@ -155,7 +155,7 @@ fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
     let (upper, _lower) = root.split_vertically(750);
 
     let mut chart = ChartBuilder::on(&upper)
-        .caption("Runtime", ("sans-serif", (5).percent_height()))
+        .caption(&format!("{} runtime", base_name), ("sans-serif", (5).percent_height()))
         .set_label_area_size(LabelAreaPosition::Left, (8).percent())
         .set_label_area_size(LabelAreaPosition::Bottom, (4).percent())
         .margin((1).percent())
