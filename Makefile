@@ -1,0 +1,3 @@
+
+bench:
+	doby bench benchmarks

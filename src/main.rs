@@ -1,4 +1,10 @@
 
+extern crate glob;
+
+fn bench_file(tgt: &str) {
+   println!("bench {}", tgt);
+}
+
 fn main() {
    let mut mode = "help";
    let mut targets = Vec::new();
@@ -11,7 +17,15 @@ fn main() {
    }
    if mode=="bench" {
       for tgt in targets {
-         println!("TODO bench {}", tgt);
+         for bench in glob::glob(&format!("{}/*.bench",tgt)).expect("glob failed") {
+            bench_file(&bench.expect("glob failed").display().to_string());
+         }
+         for bench in glob::glob(&format!("{}/*/*.bench",tgt)).expect("glob failed") {
+            bench_file(&bench.expect("glob failed").display().to_string());
+         }
+         for bench in glob::glob(&format!("{}/*/*/*.bench",tgt)).expect("glob failed") {
+            bench_file(&bench.expect("glob failed").display().to_string());
+         }
       }
    } else if mode=="help" {
       println!("doby");
