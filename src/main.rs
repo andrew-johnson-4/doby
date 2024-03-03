@@ -152,7 +152,7 @@ fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
     let root = SVGBackend::new(&file_name, (1024, 768)).into_drawing_area();
     root.fill(&WHITE).expect("Root Fill");
 
-    let (upper, lower) = root.split_vertically(750);
+    let (upper, _lower) = root.split_vertically(750);
 
     let mut chart = ChartBuilder::on(&upper)
         .caption("Runtime", ("sans-serif", (5).percent_height()))
