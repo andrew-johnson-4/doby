@@ -40,13 +40,18 @@ fn get_epoch_ms() -> u128 {
 fn bench_mark(cfg: BenchmarkConfig) -> (String,Vec<(u128,u128)>) {
    let mut name = "sh".to_string();
    let mut ms = Vec::new();
-   for cmd in cfg.cmdchain.clone().iter() {
    for arg in cfg.argchain.clone().iter() {
+   let mut cmd_i = 0;
+   for cmd in cfg.cmdchain.clone().iter() {
+      cmd_i += 1;
       let cmd = cmd.replace("$basename", &cfg.basename);
       let cmds = cmd.split(" ").collect::<Vec<&str>>();
       let mut prc = Command::new(cmds[0]);
       for parg in cmds.iter().skip(1) {
          prc.arg(parg);
+      }
+      if cmd_i == cfg.cmdchain.len() {
+         prc.arg(arg);
       }
       let before = get_epoch_ms();
       let output = prc.spawn().expect("Failed to execute command")
