@@ -1,5 +1,5 @@
 
 run: lm -o $basename.s $basename.lm
 run: as -o $basename.o $basename.s
-run: ld -o $basename   $basename.o
-run: ./$basename
+run: ld -o $basename.exe $basename.o
+run: ./$basename.exe

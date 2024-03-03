@@ -5,6 +5,8 @@ use plotters::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
+use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Clone)]
 struct BenchmarkConfig {
@@ -26,11 +28,33 @@ fn push_vec<S>(vec: Vec<S>, val: S) -> Vec<S> where S: Clone {
    vec
 }
 
-fn bench_mark(cfg: BenchmarkConfig) {
+fn get_epoch_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+}
+
+fn bench_mark(cfg: BenchmarkConfig) -> (String,u128) {
+   let mut name = "sh".to_string();
+   let mut ms = 0;
    for cmd in cfg.cmdchain {
       let cmd = cmd.replace("$basename", &cfg.basename);
-      println!("TODO run benchmark {}", cmd);
+      let cmds = cmd.split(" ").collect::<Vec<&str>>();
+      let mut prc = Command::new(cmds[0]);
+      for parg in cmds.iter().skip(1) {
+         prc.arg(parg);
+      }
+      let before = get_epoch_ms();
+      let output = prc.spawn().expect("Failed to execute command")
+                      .wait().expect("Failed to wait for command");
+      ms = get_epoch_ms() - before;
+      if !output.success() {
+         println!("benchmark failed: {}", cmd);
+      }
+      name = cmd.to_string();
    }
+   (name, ms)
 }
 
 fn bench_file(tgt: &str) {
@@ -38,10 +62,11 @@ fn bench_file(tgt: &str) {
    let basename = tgt.strip_suffix(".bench").expect("strip suffix .bench");
    let reader = BufReader::new(file);
    let mut config = None;
+   let mut results = Vec::new();
    for line in reader.lines() {
       let line = line.expect("Line in File").trim().to_string();
       if line.len()==0 && config.is_some() {
-         bench_mark(config.clone().unwrap());
+         results.push( bench_mark(config.clone().unwrap()) );
          config = None;
       } else if line.len() > 0 {
          if config.is_none() {
@@ -58,9 +83,9 @@ fn bench_file(tgt: &str) {
       }
    }
    if config.is_some() {
-      bench_mark(config.clone().unwrap())
+      results.push( bench_mark(config.clone().unwrap()) );
    }
-   plot(tgt.strip_suffix(".bench").expect("strip_suffix .bench"));
+   plot(tgt.strip_suffix(".bench").expect("strip_suffix .bench"), results);
 }
 
 fn main() {
@@ -91,7 +116,10 @@ fn main() {
    }
 }
 
-fn plot(base_name: &str) {
+fn plot(base_name: &str, results: Vec<(String,u128)>) {
+    for (cmd,cmdt) in results {
+       println!("Timed Results: {} {}", cmd, cmdt);
+    }
     let file_name = format!("{}.svg", base_name);
     let root = SVGBackend::new(&file_name, (1024, 768)).into_drawing_area();
     root.fill(&WHITE).expect("Root Fill");
