@@ -3,16 +3,53 @@
 _start:
 	jmp main
 main:
+	pop %r10
+	mov $argv, %r9
+	movq $0, 0(%r9)
+	movq $0, 8(%r9)
+before_main_argv:
+	cmp $0, %r10
+	je before_main_end
+	pop %r12
+	mov $0, %r13
+	call uuid_0000000000000001
+	mov %r12, 0(%r8)
+	mov %r13, 8(%r8)
+	mov %r8, 0(%r9)
+	mov $0, %r12
+	mov $0, %r13
+	call uuid_0000000000000001
+	mov %r12, 0(%r8)
+	mov %r13, 8(%r8)
+	mov %r8, 8(%r9)
+	mov %r8, %r9
+	dec %r10
+	jmp before_main_argv
+before_main_end:
 	push %rbp
 	mov %rsp, %rbp
-	mov $0,%r12
-	mov $0,%r13
-	call print_s
+	mov $argv, %r8
+	mov 0(%r8),%r12
+	mov 8(%r8),%r13
+	call _LP__LP_fib_C__RP__RP_
 	mov $60, %rax
 	mov $0, %rdi
 	mov $0, %rsi
 	mov $0, %rdx
 	syscall
+_LP__LP_fib_C__RP__RP_:
+	push %rbp
+	mov %rsp, %rbp
+	pushq $0
+	pushq $0
+	mov %r12, -8(%rbp)
+	mov %r13, -16(%rbp)
+	mov -8(%rbp),%r12
+	mov -16(%rbp),%r13
+	call print_s
+	mov %rbp, %rsp
+	pop %rbp
+	ret
 print_s:
 	cmp $0, %r12
 	je print_s_nil
@@ -164,12 +201,12 @@ clone_rope:
 	mov $0, %r9
 	push %r11
 	mov $0,%r11
-	call uuid_0000000000000001
+	call uuid_0000000000000004
 	pop %r11
 	call __clone_rope
 	push %r11
 	mov $1,%r11
-	call uuid_0000000000000001
+	call uuid_0000000000000004
 	pop %r11
 	movb $0, 0(%r9)
 	inc %r9
@@ -202,7 +239,7 @@ __clone_rope_small:
 	je __clone_rope_end
 	push %r11
 	mov $1,%r11
-	call uuid_0000000000000001
+	call uuid_0000000000000004
 	pop %r11
 	movb 0(%r12), %bl
 	movb %bl, 0(%r9)
@@ -406,7 +443,7 @@ load_file_contents:
 	mov $0, %r9
 	push %r11
 	mov $0,%r11
-	call uuid_0000000000000001
+	call uuid_0000000000000004
 	pop %r11
 	mov $0, %r10
 	mov $load_file_buf, %r11
@@ -415,7 +452,7 @@ load_file_loop:
 	je load_file_bufempty
 	push %r11
 	mov $1,%r11
-	call uuid_0000000000000001
+	call uuid_0000000000000004
 	pop %r11
 	movb 0(%r11), %bl
 	mov %bl, 0(%r9)
@@ -444,7 +481,7 @@ load_file_bufempty:
 	syscall
 	push %r11
 	mov $1,%r11
-	call uuid_0000000000000001
+	call uuid_0000000000000004
 	pop %r11
 	movb $0, 0(%r9)
 	inc %r9
@@ -452,14 +489,11 @@ load_file_bufempty:
 	mov $0, %r13
 	ret
 uuid_0000000000000001:
-	push %r10
+	push %r9
 	push %rax
 	push %rdi
-	cmp $0, %r8
-	jne uuid_0000000000000002
-	mov $uuid_0000000000000003, %r10
-	mov 0(%r10), %r8
-	mov %r8, %r9
+	mov $uuid_0000000000000003, %rdi
+	mov 0(%rdi), %r8
 	cmp $0, %r8
 	jne uuid_0000000000000002
 	mov $12, %rax
@@ -471,10 +505,39 @@ uuid_0000000000000001:
 	mov %r8, %rdi
 	syscall
 	sub $1073741824, %r8
+uuid_0000000000000002:
+	add $16, %r8
+	mov $uuid_0000000000000003, %r9
+	mov %r8, 0(%r9)
+	sub $16, %r8
+	pop %rdi
+	pop %rax
+	pop %r9
+	ret
+uuid_0000000000000004:
+	push %r10
+	push %rax
+	push %rdi
+	cmp $0, %r8
+	jne uuid_0000000000000005
+	mov $uuid_0000000000000006, %r10
+	mov 0(%r10), %r8
+	mov %r8, %r9
+	cmp $0, %r8
+	jne uuid_0000000000000005
+	mov $12, %rax
+	mov $0, %rdi
+	syscall
+	mov %rax,%r8
+	add $1073741824, %r8
+	mov $12, %rax
+	mov %r8, %rdi
+	syscall
+	sub $1073741824, %r8
 	mov %r8, %r9
 	mov %r9, %r10
-uuid_0000000000000002:
-	mov $uuid_0000000000000003, %r10
+uuid_0000000000000005:
+	mov $uuid_0000000000000006, %r10
 	add %r11, %r9
 	mov %r9, 0(%r10)
 	sub %r11, %r9
@@ -516,4 +579,6 @@ err_fopen:
 	.ascii "Could not open file."
 	.zero 1
 uuid_0000000000000003:
+	.zero 8
+uuid_0000000000000006:
 	.zero 8

@@ -1,2 +1,6 @@
 
-main := print-s ();
+fib := λn . (
+   print-s n
+);
+
+main := fib argv;

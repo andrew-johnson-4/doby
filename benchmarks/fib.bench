@@ -1,4 +1,10 @@
 
+arg: 0
+arg: 5
+arg: 10
+arg: 15
+arg: 20
+arg: 25
 run: lm -o $basename.s $basename.lm
 run: as -o $basename.o $basename.s
 run: ld -o $basename.exe $basename.o

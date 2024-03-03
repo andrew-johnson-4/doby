@@ -11,13 +11,15 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Clone)]
 struct BenchmarkConfig {
   basename: String,
+  argchain: Vec<String>,
   cmdchain: Vec<String>,
 }
 impl BenchmarkConfig {
    pub fn new(tgt: String) -> BenchmarkConfig {
       BenchmarkConfig {
          basename: tgt,
-         cmdchain: Vec::new()
+         argchain: Vec::new(),
+         cmdchain: Vec::new(),
       }
    }
 }
@@ -35,10 +37,11 @@ fn get_epoch_ms() -> u128 {
         .as_millis()
 }
 
-fn bench_mark(cfg: BenchmarkConfig) -> (String,u128) {
+fn bench_mark(cfg: BenchmarkConfig) -> (String,Vec<(u128,u128)>) {
    let mut name = "sh".to_string();
-   let mut ms = 0;
-   for cmd in cfg.cmdchain {
+   let mut ms = Vec::new();
+   for cmd in cfg.cmdchain.clone().iter() {
+   for arg in cfg.argchain.clone().iter() {
       let cmd = cmd.replace("$basename", &cfg.basename);
       let cmds = cmd.split(" ").collect::<Vec<&str>>();
       let mut prc = Command::new(cmds[0]);
@@ -48,12 +51,15 @@ fn bench_mark(cfg: BenchmarkConfig) -> (String,u128) {
       let before = get_epoch_ms();
       let output = prc.spawn().expect("Failed to execute command")
                       .wait().expect("Failed to wait for command");
-      ms = get_epoch_ms() - before;
+      ms.push((
+         u128::from_str_radix(&arg, 10).expect("parse benchmark arg"),
+         get_epoch_ms() - before
+      ));
       if !output.success() {
          println!("benchmark failed: {}", cmd);
       }
       name = cmd.to_string();
-   }
+   }}
    (name, ms)
 }
 
@@ -75,8 +81,14 @@ fn bench_file(tgt: &str) {
          if let Some(bcfg) = config.clone() {
             if line.starts_with("run: ") {
                config = Some(BenchmarkConfig {
-                  cmdchain: push_vec(bcfg.cmdchain, line.strip_prefix("run: ").unwrap().to_string()),
-                  ..bcfg
+                  cmdchain: push_vec(bcfg.cmdchain.clone(), line.strip_prefix("run: ").unwrap().to_string()),
+                  ..bcfg.clone()
+               })
+            }
+            if line.starts_with("arg: ") {
+               config = Some(BenchmarkConfig {
+                  argchain: push_vec(bcfg.argchain.clone(), line.strip_prefix("arg: ").unwrap().to_string()),
+                  ..bcfg.clone()
                })
             }
          }
@@ -116,9 +128,11 @@ fn main() {
    }
 }
 
-fn plot(base_name: &str, results: Vec<(String,u128)>) {
-    for (cmd,cmdt) in results {
-       println!("Timed Results: {} {}", cmd, cmdt);
+fn plot(base_name: &str, results: Vec<(String,Vec<(u128,u128)>)>) {
+    for (cmd,cmdts) in results {
+       for (argt,cmdt) in cmdts {
+          println!("Timed Results: {} {}={}", cmd, argt, cmdt);
+       }
     }
     let file_name = format!("{}.svg", base_name);
     let root = SVGBackend::new(&file_name, (1024, 768)).into_drawing_area();
